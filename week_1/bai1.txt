@@ -1,0 +1,31 @@
+Câu 1:
+    Docker là một nền tảng mở cho việc lập trình, vận chuyển và chạy ứng dụng. Docker cho phép ta tách ứng dụng từ cơ sở hạ tầng, từ đó có thể cung cấp phần mềm 1 cách nhanh chóng. --> cung cấp tool và nền tảng để quản lý toàn bộ vòng đời container (build, ship, run, monitor)
+
+    Docker compose là 1 tool cho việc định nghĩa và chạy các ứng dụng da container. Nó lm cho đơn giản hóa việc điều khiển toàn bộ ngăn xếp ứng dụng, giúp đơn giản trong việc quản lý dịch vụ, mạng, và volumns trong 1 file single Yaml. Compose lm việc trong tất cả các môi trường: production, staging, development, testing như là CI workflows.
+    --> Start, stop, and rebuild services; View the status of running services; Stream the log output of running services; Run a one-off command on a service
+    --> ví dụ: với một web app cần backend, frontend, database → Compose gom tất cả vào 1 YAML để dựng chỉ với docker compose up
+
+
+Câu 2:
+    Linux: là một họ hệ điều hành máy tính được phát triển từ năm 1991 dựa trên hệ điều hành Unix và bằng viết bằng ngôn ngữ C. Có tính bảo mật cao, linh hoạt cho phép người dùng chỉnh sửa hệ điều hành. Cấu trúc file dựa trên cây dữ liệu --> Thường được gọi là hệ điều hành GNU/Linux, vì nó thường tích hợp với phần mềm miễn phí khác từ dự án GNU. 
+    --> Thật ra, Linux là kernel, kết hợp với GNU và phần mềm khác mới thành GNU/Linux
+
+    Unix: là một họ hệ điều hành máy tính đa nhiệm, đa người dùng được viết vào những năm 1960 và 1970, có thể chạy trên nhiều loại máy tính khác nhau. Hơn nữa, Unix có thể thực hiện nhiều nhiệm vụ cùng lúc nên được gọi là hệ điều hành đa nhiệm.Là một trong những hệ điều hành 64-bíts đầu tiên, hiện nay có nhiều loại biến thể như BSD, Xenix, macOS X và Linux (Unix gốc và Linux không cùng codebase. Linux “Unix-like”, không phải phát triển trực tiếp từ Unix). Có cấu trúc kernel và shell. --> khả năng bảo mật cao, uy tín, tính đa năng, tính tương thích cao và nhiều ưu điểm khác, một trong những hệ điều hành có tính bảo mật tốt nhất trên thế giới
+
+    BSD (Berkeley Software Distribution): là một hệ điều hành máy tính được phát triển và phân phối bởi Đại học California, Berkeley vào những năm 1970 và 1980. BSD được xây dựng dựa trên hệ điều hành Unix và có nhiều tính năng tương tự như Unix. BSD có nhiều biến thể khác nhau, bao gồm FreeBSD, OpenBSD và NetBSD. Mỗi biến thể của BSD có những đặc điểm riêng biệt, nhưng chúng đều chia sẻ một số tính năng chung như hệ thống tập tin UFS (Unix File System), hỗ trợ mạng mạnh mẽ và khả năng bảo mật cao. BSD được sử dụng rộng rãi trong các hệ thống máy chủ, thiết bị mạng và các ứng dụng nhúng do tính ổn định, hiệu suất và bảo mật của nó.
+
+    *nix: là một thuật ngữ chung để chỉ các hệ điều hành tương tự Unix, bao gồm cả Linux và các biến thể của Unix như BSD, AIX, HP-UX và Solaris. Thuật ngữ này thường được sử dụng để nhấn mạnh tính tương thích và các đặc điểm chung giữa các hệ điều hành này, chẳng hạn như cấu trúc tập tin, quyền truy cập người dùng và các công cụ dòng lệnh. Các hệ điều hành *nix thường được sử dụng trong môi trường máy chủ, phát triển phần mềm và các hệ thống nhúng do tính ổn định, bảo mật và khả năng tùy chỉnh cao của chúng.
+
+    --> macOS thuộc thuộc hệ điều hành Unix và là một hệ điều hành *nix, trong khi Linux không phải nhánh trực tiếp của Unix nhưng vẫn được coi là Unix-like (*nix).
+
+
+Câu 3:
+    Alpine Linux: là một bản phân phối Linux nhẹ, an toàn và đơn giản, được thiết kế đặc biệt cho các môi trường container và ảo hóa. Alpine Linux nổi bật với kích thước nhỏ gọn (chỉ khoảng 5MB), giúp tiết kiệm tài nguyên hệ thống và tăng tốc độ khởi động. Nó sử dụng musl libc và busybox để giảm thiểu kích thước và tối ưu hóa hiệu suất thay vì glibc, GNU Core Utilities và systemd được sử dụng phổ biến hơn. Điều này làm cho Alpine trở thành một trong số ít bản phân phối Linux không dựa trên GNU Core Utilities hay glibc. 
+    --> Alpine Linux cũng có hệ thống quản lý gói apk, cho phép người dùng dễ dàng cài đặt và quản lý phần mềm. Với tính bảo mật cao và khả năng tùy chỉnh linh hoạt, Alpine Linux là lựa chọn phổ biến cho các ứng dụng container như Docker.
+
+    Ubuntu: là một bản phân phối Linux phổ biến, được phát triển và duy trì bởi Canonical Ltd. Ubuntu dựa trên Debian và được thiết kế để dễ sử dụng, thân thiện với người dùng và có tính ổn định cao. Nó cung cấp một môi trường máy tính đầy đủ với giao diện đồ họa người dùng (GUI) và nhiều ứng dụng tích hợp sẵn như trình duyệt web, bộ ứng dụng văn phòng và công cụ phát triển phần mềm. Ubuntu có chu kỳ phát hành định kỳ, với các phiên bản mới được phát hành mỗi sáu tháng và các phiên bản hỗ trợ dài hạn (LTS) được phát hành mỗi hai năm, cung cấp hỗ trợ và cập nhật bảo mật trong vòng năm năm. Ubuntu được sử dụng rộng rãi trong cả môi trường máy tính cá nhân và máy chủ, cũng như trong các hệ thống đám mây và ảo hóa.
+    --> lm base image cho nhiều ứng dụng, trong đó có Docker
+
+
+Câu 4:
+    VNC (Virtual Network Computing) là một giao thức và phần mềm cho phép người dùng điều khiển từ xa một máy tính khác thông qua mạng. VNC hoạt động dựa trên mô hình client-server, trong đó máy tính được điều khiển đóng vai trò là server, trong khi máy tính điều khiển đóng vai trò là client. VNC truyền tải hình ảnh và các sự kiện đầu vào (như bàn phím và chuột) giữa hai máy tính, cho phép người dùng tương tác với máy tính từ xa như thể họ đang ngồi trước nó. VNC hỗ trợ nhiều hệ điều hành và nền tảng khác nhau, làm cho nó trở thành một công cụ hữu ích cho việc quản lý và hỗ trợ từ xa.
