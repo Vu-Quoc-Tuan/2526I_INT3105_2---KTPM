@@ -2,9 +2,10 @@
     docker compose up --build -d
 
 + Vào powershell để kết nối với container
-    ssh vqtuan@localhost -p 2222
-    nhập pass
+    ssh vqtuan@localhost -p 2222  --> nhập pass
+
     sudo apt update
+
     sudo apt install -y xfce4 xfce4-terminal tigervnc-standalone-server dbus-x11 xauth x11-xserver-utils
 --> tải  và cài đặc vnc server và de
 
