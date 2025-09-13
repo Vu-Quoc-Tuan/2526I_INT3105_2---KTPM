@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  desktop:
+    build: .
+    container_name: ubuntu-ssh
+    ports:
+      - "127.0.0.1:2222:22"      # SSH -> localhost:2222
+      - "127.0.0.1:5901:5901"    # VNC :1 -> localhost:5901
+    volumes:
+      - devhome:/home/vqtuan     # giữ dữ liệu user qua restart
+    restart: unless-stopped
+
+    # Kiểm tra trạng thái SSH trong container (để biết container đã sẵn sàng chưa)
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/22 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  devhome:
