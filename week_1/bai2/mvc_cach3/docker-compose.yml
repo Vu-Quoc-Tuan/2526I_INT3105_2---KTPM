@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  xserver:
+    build: ./xserver
+    volumes:
+      - x11-socket:/tmp/.X11-unix
+    shm_size: "1g"
+    healthcheck:
+      test: ["CMD","bash","-lc","[ -S /tmp/.X11-unix/X0 ]"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
+
+  vnc:
+    build: ./vnc
+    environment:
+      - DISPLAY=:0
+      - VNC_PASSWORD=04012005    
+    volumes:
+      - x11-socket:/tmp/.X11-unix
+    ports:
+      - "127.0.0.1:5901:5901"   
+    depends_on:
+      xserver:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  x11-socket:

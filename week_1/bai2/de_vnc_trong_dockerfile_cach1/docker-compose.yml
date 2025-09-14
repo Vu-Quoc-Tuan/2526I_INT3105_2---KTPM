@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  desktop:
+    build:
+      context: .
+      args:
+        VNC_PASSWORD: "04012005" 
+    container_name: ubuntu-vnc
+    ports:
+      - "127.0.0.1:5901:5901"    # bind về localhost cho an toàn
+    restart: unless-stopped
