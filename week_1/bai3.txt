@@ -1,0 +1,434 @@
+1) Các thuộc tính chất lượng (những cái thường gặp nhất)
+
+Mỗi thuộc tính nên được viết thành scenario đo được (xem mục 2). Dưới đây là định nghĩa ngắn + ví dụ chỉ số + tactic/pattern tiêu biểu:
+
+Hiệu năng/Độ trễ (Performance/Latency)
+
+Chỉ số: p95/p99 latency, throughput (req/s), CPU/memory/GC.
+
+Tactic: cache (local/Redis/CDN), batching, async, connection pooling, data locality.
+
+Pattern: Event-driven, CQRS + read model, pipeline/bulkhead.
+
+Khả năng mở rộng (Scalability)
+
+Chỉ số: tuyến tính khi nhân đôi tải; max RPS trước khi suy giảm.
+
+Tactic: stateless service, horizontal scaling, partitioning/sharding, autoscaling.
+
+Pattern: Microservices, HPA (K8s), queue-based load leveling.
+
+**Sẵn sàng (Availability) & Độ tin cậy (Reliability)
+
+Chỉ số: SLA 99.9%, MTBF/MTTR, error rate.
+
+Tactic: redundancy, health checks, graceful degradation, circuit breaker, retry + timeout, idempotency.
+
+Pattern: Active-active, blue-green/canary, saga (orchestration/choreography).
+
+Bảo mật (Security)
+
+Chỉ số: số lỗ hổng mở, mean time to remediate, pass rate SAST/DAST.
+
+Tactic: authn/authz (OIDC/OAuth2), secret management, input validation, encryption in transit/at rest.
+
+Pattern: Zero-trust, API gateway + policy, mTLS, token exchange.
+
+Khả bảo trì/chỉnh sửa (Maintainability/Modifiability)
+
+Chỉ số: lead time for change, change failure rate, cyclomatic complexity, coupling/cohesion.
+
+Tactic: tách concerns, interface ổn định, dependency inversion, module boundaries rõ.
+
+Pattern: Hexagonal/Clean, Plug-in architecture, bounded context (DDD).
+
+Khả kiểm thử (Testability)
+
+Chỉ số: test coverage hữu ích, time to run suite, flakiness.
+
+Tactic: DI, seam points, test contracts, test data management.
+
+Pattern: Consumer-driven contract test, testing pyramid.
+
+Khả quan sát (Observability)
+
+Chỉ số: SLI (latency, error rate, saturation), độ phủ log/trace/metrics, MTTR.
+
+Tactic: structured logging, distributed tracing, RED/USE metrics, trace propagation.
+
+Pattern: Telemetry standard (OpenTelemetry), centralized logging.
+
+Khả triển khai (Deployability)
+
+Chỉ số: deploy frequency, lead time to prod, mean time to restore.
+
+Tactic: immutable image, infra as code, feature flags, progressive delivery.
+
+Pattern: Blue-green, canary, shadow traffic.
+
+Khả tương tác (Interoperability)
+
+Chỉ số: tuân thủ API spec, backward/forward compatibility.
+
+Tactic: versioning, schema evolution, adapter/anti-corruption layer.
+
+Pattern: API-first, event schema registry.
+
+Khả di chuyển/Nền tảng (Portability) & Chi phí (Cost-efficiency)
+
+Chỉ số: % vendor-specific, cloud bill per request, cost/SLO.
+
+Tactic: abstract cloud SDK, finops budgets/alerts, right-sizing.
+
+2) Đánh giá kiến trúc (làm bài bản mà vẫn gọn)
+
+Quy trình nhẹ nhàng, thực hiện trong 1–2 buổi workshop + vài spike kỹ thuật:
+
+Thu thập mục tiêu & stakeholder → liệt kê mục tiêu kinh doanh, ràng buộc (regulation, deadline).
+
+Viết Quality Attribute Scenarios (khuôn mẫu dưới):
+
+[Stimulus Source] ai/tác nhân gây ra
+
+[Stimulus] điều gì xảy ra
+
+[Environment] bối cảnh (bình thường/cao điểm/sự cố)
+
+[Artifact] thành phần bị tác động
+
+[Response] hệ thống phản ứng thế nào
+
+[Response Measure] thước đo định lượng
+
+Ví dụ (latency): “User gửi GET /search (Stimulus) khi traffic gấp 3 bình thường (Env). Hệ thống trả p95 < 300ms (Response+Measure).”
+
+Utility Tree: xếp hạng các scenario theo Business Value và Risk → chọn top 5–8 scenario đáng làm trước.
+
+ATAM-lite: thảo luận tactic/pattern cho từng scenario, nêu trade-off và risk/theme (không cần làm full ATAM nặng nề).
+
+Spike/Prototype đo đạc: benchmark nhỏ & chaos test ngắn cho các rủi ro top.
+
+Đặt SLO/SLI + Error Budget (SRE): ràng buộc chất lượng thành mục tiêu vận hành.
+
+Roadmap kỹ thuật: tạo Architecture Epics/ADRs cho tactic đã chọn, gắn vào backlog.
+
+Vòng lặp: review mỗi quý (hoặc sau các sự cố lớn), cập nhật SLO/tactic.
+
+Các kỹ thuật hỗ trợ nhanh:
+
+SAAM/ATAM-lite: tập trung vào scenario & trade-off.
+
+CBAM: cân bằng chi phí–lợi ích cho tactic đắt đỏ.
+
+Threat Modeling (STRIDE) cho Security.
+
+Chaos Experiments cho Resilience.
+
+Performance modeling + flame graph (perf/async).
+
+3) Triển khai các tactic/pattern (mẫu “cầm về chạy”)
+
+Dưới đây là vài khối build phổ biến—áp dụng linh hoạt theo stack của bạn.
+
+3.1 Resilience (timeout/retry/circuit-breaker)
+
+Java Spring Boot + Resilience4j (application.yml)
+
+resilience4j:
+  timeLimiter:
+    instances:
+      extApi: { timeoutDuration: 2s }
+  retry:
+    instances:
+      extApi: { maxAttempts: 3, waitDuration: 200ms }
+  circuitbreaker:
+    instances:
+      extApi:
+        failureRateThreshold: 50
+        slidingWindowSize: 20
+        waitDurationInOpenState: 30s
+
+
+Áp vào client @Retry(name="extApi"), @CircuitBreaker(name="extApi"), @TimeLimiter(name="extApi").
+
+Node.js (Axios + p-retry + p-timeout): bọc call bằng timeout & retry có backoff; bảo đảm idempotency key với POST.
+
+3.2 Caching nhiều tầng
+
+Edge (CDN) → Service cache (Redis) → In-process (LRU)
+
+Quy ước TTL khác nhau: edge (ngắn, vary headers), Redis (5–30 phút), LRU (vài giây—“shock absorber”).
+
+Chú ý cache stampede (dùng single flight/lock, background refresh).
+
+3.3 Quan sát (Observability)
+
+Chuẩn hóa OpenTelemetry (trace + metrics + logs) → đẩy Prometheus/Grafana + Tempo/Loki.
+
+Thiết lập RED (Rate-Errors-Duration) cho API và USE (Utilization-Saturation-Errors) cho hạ tầng.
+
+Gắn trace id vào log tuyến tính, propagate context qua HTTP/gRPC/queue.
+
+3.4 Triển khai (CI/CD + Progressive Delivery)
+
+Pipeline: build image → test → SCA/SAST/DAST → SBOM → sign (Sigstore) → deploy.
+
+K8s:
+
+HPA autoscale theo CPU/latency/custom metrics.
+
+Canary/Blue-Green qua Argo Rollouts/Flagger, feature flags (LaunchDarkly/Unleash).
+
+Rollback tự động dựa trên SLO guardrail.
+
+3.5 Dữ liệu & nhất quán
+
+CQRS + Event sourcing (nếu read-heavy hoặc audit cần mạnh).
+
+Saga cho giao dịch phân tán (định nghĩa rõ compensation).
+
+Sharding theo tenant/hash; read replica cho query nặng.
+
+Schema evolution: Avro/Protobuf + registry (back/forward compat).
+
+3.6 Bảo mật by-design
+
+OAuth2/OIDC (Keycloak/Auth0), mTLS nội bộ.
+
+Secrets trong vault/KMS, không để .env trên repo.
+
+Policy as code (OPA/Gatekeeper), least privilege IAM.
+
+Security testing: SAST/DAST/Dependency scan + container scan + IaC scan (Checkov/Terrascan).
+
+4) Mẫu “Quality Attribute Scenario” (copy dùng liền)
+[Source]    User/Batch/Upstream Service/Attacker/Operator
+[Stimulus]  gửi request / sự cố / tăng tải / node die / schema change ...
+[Environment] normal/peak/chaos/upgrade window
+[Artifact]  API X / Service Y / DB Z / Message Broker
+[Response]  hệ thống làm gì: degrade, queue, fallback, reject có kiểm soát...
+[Measure]   p95 < 250ms; error rate < 0.5%; RPO=0; RTO=5m; 99.9% monthly; MTTR < 15m...
+
+5) Checklist nhanh khi thiết kế kiến trúc
+
+ Có top 5–8 scenario được định lượng (SLO/SLI)?
+
+ Có trade-off ghi rõ trong ADR (vd: chọn cache nóng thay vì precompute)?
+
+ Log/metrics/trace đã chuẩn OpenTelemetry?
+
+ Resilience: timeout, retry, circuit-breaker, bulkhead, backpressure?
+
+ Deployment an toàn: feature flags, canary, rollback, DB migration có backward-compat?
+
+ Bảo mật: authn/authz, secret mgmt, encrypt, threat model + test tự động?
+
+ Scalability: stateless, autoscale, queueing, partitioning?
+
+ Maintainability: boundary rõ (DDD), module hoán đổi, test contract?
+
+Nếu bạn muốn, mình có thể:
+
+Lấy 1–2 thuộc tính ưu tiên hiện tại của dự án bạn (ví dụ: p95 < 200ms và 99.9% availability) rồi viết scenario chi tiết, biện pháp triển khai cụ thể đúng stack bạn đang dùng (Java/Node/K8s/Redis/…).
+
+Tạo một template ADR + utility tree để bạn và team điền trong buổi workshop đầu tiên.
+
+Bạn đã nói:
+ns chi tiết về các thuộc tính chất lượng đi
+ChatGPT đã nói:
+
+Ok Tuan—mình “đào sâu” các thuộc tính chất lượng (quality attributes) thường gặp nhất trong kiến trúc phần mềm. Mỗi mục đều có: Định nghĩa → Vì sao quan trọng → Cách đo (SLI/KPI) → Scenario mẫu → Tactic/Pattern → Cách kiểm chứng.
+
+1) Hiệu năng & Độ trễ (Performance/Latency)
+
+Định nghĩa: Hệ thống xử lý nhanh cỡ nào với một tải nhất định.
+
+Vì sao: Trải nghiệm người dùng, SEO, doanh thu, SLO của API.
+
+Đo: p50/p95/p99 latency; throughput (req/s); queue time vs service time; CPU/GC; tail-latency.
+
+Scenario mẫu: “Khi traffic gấp 3 trong 10 phút (peak), p95 cho GET /search < 300 ms.”
+
+Tactic/Pattern: cache nhiều tầng (CDN/Redis/LRU), batching/debatching, async I/O, connection pooling, data locality, read-optimized model (CQRS), precompute/warmup, zero-copy, profile/eliminate hotspots.
+
+Kiểm chứng: benchmark có dữ liệu thật, load test theo pattern (closed vs open model), flame graph, Latency S-curves.
+
+2) Khả mở rộng (Scalability)
+
+Định nghĩa: Khả năng tăng năng lực xử lý khi thêm tài nguyên.
+
+Đo: scalability factor (σ ~ Δthroughput/Δresource), max sustainable RPS trước khi SLA vỡ, cost/RPS.
+
+Scenario: “Khi nhân đôi replicas từ 10→20, throughput tăng ≥ 1.8×.”
+
+Tactic/Pattern: stateless services, horizontal scaling, partitioning/sharding, autoscaling theo SLI, queue-based load leveling, backpressure.
+
+Kiểm chứng: step-load, soak test; kiểm tra “amplification factors” (DB, lock, cache miss).
+
+3) Sẵn sàng (Availability)
+
+Định nghĩa: Tỷ lệ thời gian hệ thống đáp ứng đúng trong kỳ đo (SLA/uptime).
+
+Đo: 99.9%/99.99%; error budget; minutes of unavailability/tháng; RTO/RPO.
+
+Scenario: “Trong 30 ngày, uptime của checkout ≥ 99.95%; khi 1 AZ die, RTO < 5 phút.”
+
+Tactic/Pattern: redundancy N+1, multi-AZ/region, health check, auto-heal, graceful degradation, rate limit, throttling, bulkhead/circuit breaker.
+
+Kiểm chứng: chaos experiments (AZ failure, dependency failure), game day, DR drill.
+
+4) Độ tin cậy (Reliability)
+
+Định nghĩa: Xác suất hệ thống hoạt động đúng liên tục (ít lỗi ngẫu nhiên).
+
+Đo: MTBF/MTTR, error rate, durable write success, message loss rate.
+
+Scenario: “Message loss qua Kafka = 0; duplicate ≤ 0.01%.”
+
+Tactic/Pattern: idempotency, exactly-once/at-least-once semantics với dedupe key, transactional outbox, retry+timeout có jitter, checksum/end-to-end integrity.
+
+Kiểm chứng: fault injection (packet loss, latency), linh kiện hỏng giả lập, property-based testing.
+
+5) Bảo mật (Security)
+
+Định nghĩa: Khả năng bảo vệ C/I/A (confidentiality/integrity/availability).
+
+Đo: #vulns mở; MTTR khắc phục; coverage SAST/DAST; % dịch vụ dùng mTLS/OIDC; pass rate policy.
+
+Scenario: “Tất cả internal traffic mTLS; rotation secrets ≤ 90 ngày; 0 critical CVE tồn tại > 7 ngày.”
+
+Tactic/Pattern: OIDC/OAuth2, mTLS, secret vault/KMS, least-privilege IAM, input validation, schema allow-list, audit log bất biến, policy-as-code (OPA).
+
+Kiểm chứng: threat modeling (STRIDE), pentest/bug bounty, IaC scan, dependency scan, tabletop incident.
+
+6) Bảo trì/Chỉnh sửa (Maintainability/Modifiability)
+
+Định nghĩa: Dễ thay đổi, thêm tính năng, sửa lỗi mà ít tác động phụ.
+
+Đo: lead time for change, change failure rate, coupling/cohesion, churn hotspots.
+
+Scenario: “Thêm field new vào API Order trong ≤ 2 ngày mà không ảnh hưởng client cũ.”
+
+Tactic/Pattern: DDD/bounded context, hexagonal/clean architecture, stable interfaces, semver, feature toggles, ADRs, module boundaries rõ.
+
+Kiểm chứng: change simulation (what-if), architectural fitness function (unit test cho boundary), dependency graph lint.
+
+7) Khả kiểm thử (Testability)
+
+Định nghĩa: Dễ tạo test đúng, cô lập được, chạy nhanh/ổn định.
+
+Đo: % coverage hữu ích (branch/condition, mutation), flakiness rate, thời gian CI.
+
+Scenario: “Test suite < 10 phút, flakiness < 1%, CDC test ≥ 95% consumer routes.”
+
+Tactic/Pattern: Dependency Injection, seam points, test IDs, consumer-driven contract test, deterministic time/IO, ephemeral env.
+
+Kiểm chứng: mutation testing, CDC pipeline gate, flaky detector, hermetic builds.
+
+8) Quan sát được (Observability)
+
+Định nghĩa: Có đủ telemetry (logs/metrics/traces) để trả lời “tại sao” chứ không chỉ “cái gì”.
+
+Đo: SLI (rate/error/duration), % trace sampling hiệu quả, log completeness, MTTR.
+
+Scenario: “Mọi request có trace-id; p99 span attribution chỉ ra bottleneck trong < 5 phút.”
+
+Tactic/Pattern: OpenTelemetry, structured logging, RED/USE, exemplars, SLO + alerts dựa trên burn rate.
+
+Kiểm chứng: incident replay, tracing drills, “black-box question” check (trả lời 5 câu hỏi SRE).
+
+9) Khả triển khai (Deployability)
+
+Định nghĩa: Dễ, nhanh, an toàn khi triển khai và rollback.
+
+Đo: deploy frequency, lead time, change failure rate, MTTR sau deploy.
+
+Scenario: “Canary 10% trong 15 phút với guardrail, auto-rollback nếu error rate > 1%.”
+
+Tactic/Pattern: immutable builds, infra-as-code, canary/blue-green, feature flags, DB migration backward/forward compatible, SBOM + signing.
+
+Kiểm chứng: progressive delivery rehearsal, chaos during deploy (kill pod), simulated rollback.
+
+10) Tương tác/Khả dùng (Usability)
+
+Định nghĩa: Mức dễ dùng, hiệu quả và hài lòng (UI/UX/API DX).
+
+Đo: task success rate, time-on-task, SUS score, error-prevention rate, API DX NPS.
+
+Scenario: “Onboarding ≤ 5 phút, 80% user tạo project đầu tiên không cần docs.”
+
+Tactic/Pattern: feedback tức thì, affordance, guideline WCAG, consistent APIs, DX kit/SDK.
+
+Kiểm chứng: usability test, A/B test, session replay (ẩn PII), API usability review.
+
+11) Tương thích/Interoperability
+
+Định nghĩa: Làm việc trơn tru với hệ khác theo chuẩn.
+
+Đo: % API chuẩn hóa (OpenAPI/AsyncAPI), schema compatibility rate, conformance tests pass.
+
+Scenario: “Client v1 vẫn gọi được server v2/v3 (back/forward compat) trong 12 tháng.”
+
+Tactic/Pattern: versioning, schema evolution (Avro/Protobuf + registry), anti-corruption layer/adapters.
+
+Kiểm chứng: contract tests 2 chiều, canary clients, compatibility matrix CI.
+
+12) Di động/Portability & Vendor-neutral
+
+Định nghĩa: Chuyển đổi môi trường/hạ tầng ít đau đớn.
+
+Đo: % thành phần phụ thuộc vendor, thời gian “lift & shift”, chi phí di trú.
+
+Scenario: “Chạy được on-prem & cloud với thay đổi config < 5%.”
+
+Tactic/Pattern: containerization, 12-factor, abstraction layer cho blob/queue, Terraform module multi-provider.
+
+Kiểm chứng: rehearsal deploy đa môi trường, chaos “control-plane loss”.
+
+13) Chi phí/Hiệu quả tài nguyên (Cost Efficiency/Performance per $)
+
+Định nghĩa: Đạt SLO ở chi phí tối ưu.
+
+Đo: cost per request, cost per tenant, % waste (idle), rightsizing score.
+
+Scenario: “Giảm cost/RPS 20% mà giữ p95 ≤ 200 ms.”
+
+Tactic/Pattern: finops budgets/alerts, autoscale theo SLI, tiered storage, compute savings plan, caching, hot/cold path.
+
+Kiểm chứng: cost A/B, utilization analysis, anomaly detection hóa đơn.
+
+14) Toàn vẹn dữ liệu (Data Integrity) & Nhất quán
+
+Định nghĩa: Dữ liệu đúng, không mất, không sai lệch giữa biên giới.
+
+Đo: violation rate (invariant), drift giữa nguồn & sink, duplicate/loss rate.
+
+Scenario: “Event outbox đảm bảo ‘no missing/dup’; invariant balance ≥ 0 luôn đúng.”
+
+Tactic/Pattern: constraints, checksum, transactional outbox + CDC, two-phase validation, saga + compensation, idempotency keys.
+
+Kiểm chứng: invariant tests, reconciliation jobs, lineage kiểm tra.
+
+15) Khả tiến hóa (Evolvability)
+
+Định nghĩa: Thích nghi với yêu cầu mới/lưu lượng mới theo thời gian dài.
+
+Đo: architectural fitness (điểm vi phạm boundary), số “hotspot” mã, effort để thêm Bounded Context mới.
+
+Scenario: “Thêm service ‘Recommendations’ mà không chạm quá 1 boundary ngoài.”
+
+Tactic/Pattern: modular monolith → microservices theo theo domain, event-first design, ADRs, strangler fig.
+
+Kiểm chứng: architectural fitness functions, lighthouse refactoring cadence.
+
+16) Tuân thủ (Compliance) & Quy định
+
+Định nghĩa: Đáp ứng tiêu chuẩn/luật (PCI, HIPAA, GDPR…).
+
+Đo: audit findings, kiểm soát bắt buộc (SoD, logging, retention), DPA/BAA status.
+
+Scenario: “Pseudonymization PII trước khi vào data lake; right-to-erasure < 30 ngày.”
+
+Tactic/Pattern: data classification, encryption & key separation, policy-as-code, retention & legal hold.
+
+Kiểm chứng: audit dry-run, evidence automation (change mgmt, SBOM, access review).
